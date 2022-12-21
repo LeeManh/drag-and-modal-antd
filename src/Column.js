@@ -16,13 +16,14 @@ const Container = styled.div`
 const Title = styled.div`
   padding: 8px;
   cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 `;
 const TaskList = styled.div`
   padding: 8px;
   background-color: ${(props) =>
     props.isDraggingOver ? "skyblue" : "inherit"};
   flex-grow: 1;
-  min-height: 100px;
+  min-height: 80px;
 `;
 
 const Column = ({ column, tasks, index }) => {

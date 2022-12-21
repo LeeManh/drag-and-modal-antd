@@ -9,6 +9,7 @@ import CustomModal from "CustomModal";
 const Container = styled.div`
   margin-top: 10px;
   display: flex;
+  align-items: flex-start;
   gap: 16px;
   overflow-x: auto;
 `;
@@ -104,6 +105,7 @@ const App = () => {
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Velit, quis.
         </div>
       </CustomModal>
+
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable
           droppableId="all-columns"
