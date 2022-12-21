@@ -9,7 +9,7 @@ import CustomModal from "CustomModal";
 const Container = styled.div`
   margin-top: 10px;
   display: flex;
-  gap: 8px;
+  gap: 16px;
   overflow-x: auto;
 `;
 
@@ -96,7 +96,9 @@ const App = () => {
   };
 
   return (
-    <>
+    <div
+      style={{ backgroundColor: "lightgray", height: "100vh", padding: "10px" }}
+    >
       <CustomModal>
         <div>
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Velit, quis.
@@ -131,7 +133,7 @@ const App = () => {
           )}
         </Droppable>
       </DragDropContext>
-    </>
+    </div>
   );
 };
 
