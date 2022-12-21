@@ -1,87 +1,138 @@
 import React, { useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 
-const grid = 8;
-const getItems = (count) =>
-  Array.from({ length: count }, (v, k) => k).map((k) => ({
-    id: `item-${k}`,
-    content: `item ${k}`,
-  }));
-const getItemStyle = (isDragging, draggableStyle) => ({
-  // some basic styles to make the items look a bit nicer
-  userSelect: "none",
-  padding: grid * 2,
-  margin: `0 0 ${grid}px 0`,
+import Column from "Column";
+import initialData from "initial-data";
+import styled from "styled-components";
+import CustomModal from "CustomModal";
 
-  // change background colour if dragging
-  background: isDragging ? "lightgreen" : "grey",
+const Container = styled.div`
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+`;
 
-  // styles we need to apply on draggables
-  ...draggableStyle,
-});
-const getListStyle = (isDraggingOver) => ({
-  background: isDraggingOver ? "lightblue" : "lightgrey",
-  padding: grid,
-  width: 250,
-});
-const reorder = (list, old_index, new_index) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(old_index, 1);
-  result.splice(new_index, 0, removed);
-
-  return result;
-};
-function App() {
-  const [items, setItems] = useState(getItems(10));
+const App = () => {
+  const [data, setData] = useState(initialData);
 
   const onDragEnd = (result) => {
-    if (!result.destination) {
+    const { destination, source, draggableId, type } = result;
+
+    if (!destination) {
       return;
     }
-    const index = result.source.index;
-    const newIndex = result.destination.index;
-    const newItems = reorder(items, index, newIndex);
-    setItems(newItems);
+
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) {
+      return;
+    }
+
+    if (type === "column") {
+      const newColumnOrder = Array.from(data.columnOrder);
+      newColumnOrder.splice(source.index, 1);
+      newColumnOrder.splice(destination.index, 0, draggableId);
+
+      const newData = {
+        ...data,
+        columnOrder: newColumnOrder,
+      };
+      setData(newData);
+      return;
+    }
+
+    const start = data.columns[source.droppableId];
+    const finish = data.columns[destination.droppableId];
+
+    if (start === finish) {
+      const column = data.columns[source.droppableId];
+      const newTaskIds = Array.from(column.taskIds);
+      newTaskIds.splice(source.index, 1);
+      newTaskIds.splice(destination.index, 0, draggableId);
+
+      const newColumn = {
+        ...column,
+        taskIds: newTaskIds,
+      };
+
+      const newData = {
+        ...data,
+        columns: {
+          ...data.columns,
+          [newColumn.id]: newColumn,
+        },
+      };
+
+      setData(newData);
+      return;
+    }
+
+    // Moving from one list to another
+    const startTaskIds = Array.from(start.taskIds);
+    startTaskIds.splice(source.index, 1);
+    const newStart = {
+      ...start,
+      taskIds: startTaskIds,
+    };
+
+    const finishTaskIds = Array.from(finish.taskIds);
+    finishTaskIds.splice(destination.index, 0, draggableId);
+    const newFinish = {
+      ...finish,
+      taskIds: finishTaskIds,
+    };
+
+    const newData = {
+      ...data,
+      columns: {
+        ...data.columns,
+        [newStart.id]: newStart,
+        [newFinish.id]: newFinish,
+      },
+    };
+    setData(newData);
   };
 
   return (
-    <div>
+    <>
+      <CustomModal>
+        <div>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Velit, quis.
+        </div>
+      </CustomModal>
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="droppable">
-          {(provided, snapshot) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              style={getListStyle(snapshot.isDraggingOver)}
-            >
-              {items.map((item, index) => (
-                <Draggable
-                  key={item.id.toString()}
-                  draggableId={item.id.toString()}
-                  index={index}
-                >
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      style={getItemStyle(
-                        snapshot.isDragging,
-                        provided.draggableProps.style
-                      )}
-                    >
-                      {item.content}
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
+        <Droppable
+          droppableId="all-columns"
+          direction="horizontal"
+          type="column"
+        >
+          {(provider) => (
+            <Container ref={provider.innerRef} {...provider.droppableProps}>
+              {data.columnOrder.map((columnId, index) => {
+                const column = data.columns[columnId];
+
+                const tasks = column.taskIds.map(
+                  (taskId) => data.tasks[taskId]
+                );
+
+                return (
+                  <Column
+                    key={column.id}
+                    column={column}
+                    tasks={tasks}
+                    index={index}
+                  />
+                );
+              })}
+              {provider.placeholder}
+            </Container>
           )}
         </Droppable>
       </DragDropContext>
-    </div>
+    </>
   );
-}
+};
 
 export default App;
